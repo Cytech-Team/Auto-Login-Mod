@@ -48,7 +48,8 @@ public class AlmCommand {
                             // Show global settings
                             String globalMode = ServerConfig.isGlobalRegisterMode() ? "/register" : "/login";
                             String hasGlobal = ServerConfig.hasGlobalPassword() ? "[Set]" : "[Not Set]";
-                            context.getSource().sendFeedback(Component.literal("[Auto-Login] Global: " + globalMode + " " + hasGlobal));
+                            String autoType = ServerConfig.isAutoTypeEnabled() ? "[AutoType: ON]" : "[AutoType: OFF]";
+                            context.getSource().sendFeedback(Component.literal("[Auto-Login] Global: " + globalMode + " " + hasGlobal + " " + autoType));
                             
                             // Show per-server settings
                             if (!ServerConfig.getAllServers().isEmpty()) {
@@ -90,6 +91,17 @@ public class AlmCommand {
                             })
                         )
                     )
+                    // Toggle auto-type (auto login on join)
+                    .then(ClientCommands.literal("autotype")
+                        .executes(context -> {
+                            boolean newState = !ServerConfig.isAutoTypeEnabled();
+                            ServerConfig.setAutoTypeEnabled(newState);
+                            context.getSource().sendFeedback(
+                                Component.literal("[Auto-Login] Auto-type on join: " + (newState ? "ENABLED" : "DISABLED"))
+                            );
+                            return 1;
+                        })
+                    )
                     // Help
                     .then(ClientCommands.literal("help")
                         .executes(context -> {
@@ -97,9 +109,10 @@ public class AlmCommand {
                             context.getSource().sendFeedback(Component.literal("/alm set <password> - Global /login for all servers"));
                             context.getSource().sendFeedback(Component.literal("/alm register <password> - Global /register for all servers"));
                             context.getSource().sendFeedback(Component.literal("/alm add <ip> <password> - Per-server /login setting"));
+                            context.getSource().sendFeedback(Component.literal("/alm autotype - Toggle auto-login on join"));
                             context.getSource().sendFeedback(Component.literal("/alm list - Show settings"));
                             context.getSource().sendFeedback(Component.literal("/alm remove <ip> - Remove per-server setting"));
-                            context.getSource().sendFeedback(Component.literal("Press F9 (or your keybind) to auto-login"));
+                            context.getSource().sendFeedback(Component.literal("Press F9 (or your keybind) to manual login"));
                             return 1;
                         })
                     )

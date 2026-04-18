@@ -2,6 +2,6 @@
   "alm.key.autocmd.send": "Auto-Login Command",
   "alm.default_command_text": "[Auto-Login] No password configured. Use /alm set <password> or /alm register <password>",
   "alm.command.set.success": "[Auto-Login] Password saved successfully!",
-  "alm.command.help.text": "[Auto-Login] Commands:\n/alm set <password> - Global /login for all servers\n/alm register <password> - Global /register for all servers\n/alm add <ip> <password> - Per-server /login setting\n/alm list - Show settings\n/alm remove <ip> - Remove per-server setting\n/alm help - Show help",
+  "alm.command.help.text": "[Auto-Login] Commands:\n/alm set <password> - Global /login for all servers\n/alm register <password> - Global /register for all servers\n/alm add <ip> <password> - Per-server /login setting\n/alm autotype - Toggle auto-login on join\n/alm list - Show settings\n/alm remove <ip> - Remove per-server setting\n/alm help - Show help\nF9 = Manual login\nSmart Auto-Detect = Auto-detects /login or /register from server messages",
   "category.alm.misc": "Auto-Login Mod"
 }

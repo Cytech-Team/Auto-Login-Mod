@@ -25,6 +25,7 @@ public class ServerConfig {
     private static String globalPassword = "";          // password for all servers
     private static boolean globalRegisterMode = false;  // use /register for all
     private static String globalPasswordSalt = "";       // salt for global password
+    private static boolean autoTypeEnabled = false;     // auto send command on join
     
     public static class ServerEntry {
         public String ip;
@@ -67,6 +68,9 @@ public class ServerConfig {
                 if (root.has("globalPasswordSalt")) {
                     globalPasswordSalt = root.get("globalPasswordSalt").getAsString();
                 }
+                if (root.has("autoTypeEnabled")) {
+                    autoTypeEnabled = root.get("autoTypeEnabled").getAsBoolean();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,6 +90,7 @@ public class ServerConfig {
             root.addProperty("globalPassword", globalPassword);
             root.addProperty("globalRegisterMode", globalRegisterMode);
             root.addProperty("globalPasswordSalt", globalPasswordSalt);
+            root.addProperty("autoTypeEnabled", autoTypeEnabled);
             
             CONFIG_FILE.getParentFile().mkdirs();
             try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
@@ -185,5 +190,16 @@ public class ServerConfig {
     // Check if has global password set
     public static boolean hasGlobalPassword() {
         return !globalPassword.isEmpty();
+    }
+    
+    // Get auto-type enabled status
+    public static boolean isAutoTypeEnabled() {
+        return autoTypeEnabled;
+    }
+    
+    // Set auto-type enabled status
+    public static void setAutoTypeEnabled(boolean enabled) {
+        autoTypeEnabled = enabled;
+        save();
     }
 }
