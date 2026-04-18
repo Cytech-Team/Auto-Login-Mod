@@ -1,0 +1,5 @@
+{
+  "alm.category.autocmd": "Auto Login",
+  "alm.key.autocmd.send": "Send Command",
+  "alm.default_command_text": "Enter your password using /alm:set <password> command (Not implemented yet, please use config file instead)"
+}
