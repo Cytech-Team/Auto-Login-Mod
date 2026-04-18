@@ -1,23 +1,23 @@
 package cloud.sect.alm.keybinding;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import com.mojang.blaze3d.platform.InputConstants;
 import org.lwjgl.glfw.GLFW;
 
 public class LoginKeybinding {
-    private static KeyBinding loginKeyBinding;
+    private static KeyMapping loginKeyMapping;
 
     public static void register() {
-        loginKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        loginKeyMapping = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "alm.key.autocmd.send",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_F9,
-                KeyBinding.Category.MISC
+                KeyMapping.Category.MISC
         ));
     }
 
-    public static KeyBinding get() {
-        return loginKeyBinding;
+    public static KeyMapping get() {
+        return loginKeyMapping;
     }
 }

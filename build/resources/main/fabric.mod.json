@@ -7,9 +7,6 @@
 	"authors": [
 		"Cytech Team"
 	],
-	"contributors": [
-		"Namnarak"
-	],
 	"contact": {
 		"homepage": "https://github.com/Cytech-Team",
 		"sources": "https://github.com/Cytech-Team/Auto-Login-Mod",
@@ -25,8 +22,8 @@
 	},
 	"depends": {
 		"fabricloader": ">=0.19.1",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
+		"minecraft": ">=26.1.2",
+		"java": ">=25",
 		"fabric-api": "*"
 	}
 }
