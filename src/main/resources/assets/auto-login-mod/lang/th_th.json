@@ -1,0 +1,9 @@
+{
+  "key.alm.login": "เข้าสู่ระบบอัตโนมัติ",
+  "category.alm.main": "Auto Login Mod",
+  "alm.key.config": "เปิดเมนูตั้งค่า",
+  "alm.config.title": "ตั้งค่า Auto Login",
+  "alm.config.global_pass": "รหัสผ่านรวม (Global)",
+  "alm.config.smart_mode": "โหมดอัจฉริยะ",
+  "alm.config.delay": "ดีเลย์ (ms)"
+}

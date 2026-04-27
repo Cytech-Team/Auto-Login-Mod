@@ -1,12 +1,37 @@
-This client-side modification is designed to automate the authentication process on Minecraft servers that utilize in-game login systems (such as AuthMe or similar plugins). When joining a server that requires a password, the mod detects the login prompt and automatically submits the `/login <password>` command on behalf of the player.
+# 🛡️ Auto-Login Mod (Pro Edition)
 
-### Key Features:
-* **Automatic Command Execution:** Eliminates the need to manually type credentials every time you switch servers or reconnect.
-* **Session Management:** Detects when a login is required versus when a player is already authenticated.
-* **Open Source:** The logic is transparent and available for review via the provided repository.
+![Mod Icon](src/main/resources/assets/auto-login-mod/icon.png)
 
-### Technical Implementation:
-The mod typically functions by monitoring incoming chat packets or screen transitions. When it identifies specific keywords or "Login" UI elements, it triggers a programmable response. Users can generally configure their specific credentials within a local config file, ensuring the mod knows which password to send to which server IP.
+The ultimate client-side utility for Minecraft players who want a seamless and secure login experience on servers with AuthMe or similar systems.
 
-### Usage Warning:
-While convenient, users should ensure their local configuration files are secure, as storing passwords in plain text can pose a security risk if the computer is shared. Additionally, always verify if automated login mods are permitted under the specific rules of the server you are joining.
+## 🚀 Key Features
+
+*   **⚡ Smart Auto-Login:** Automatically detects `/login` or `/register` prompts and submits your credentials.
+*   **🛠️ Custom Triggers:** Add your own keywords to trigger auto-login via `/alm trigger add <word>`.
+*   **🛡️ Pro Spam Protection:** Integrated cooldown system prevents chat spam even on slow servers.
+*   **🔒 Military-Grade Security:**
+    *   PBKDF2 with 300,000 iterations for key derivation.
+    *   AES-GCM (256-bit) encryption for stored passwords.
+    *   Secure Master Password lock (F9 to unlock).
+*   **⏳ Gaussian Stealth Delay:** Mimics human typing speed with randomized delays (800ms - 2000ms).
+*   **🌐 Full Thai Support:** Works perfectly with Thai servers and custom Thai login messages.
+
+## 🎮 Commands
+
+| Command | Description |
+| :--- | :--- |
+| `/alm gui` | Open the configuration screen |
+| `/alm trigger add <word>` | Add a custom keyword to trigger login |
+| `/alm trigger list` | See all active custom triggers |
+| `/alm set <password>` | Set a global password for all servers |
+| `/alm add <ip> <pass>` | Set a specific password for a server IP |
+| `/alm list` | View all saved server configurations |
+
+## ⚙️ How to Use
+
+1.  Press **F9** in-game to set your **Master Password**.
+2.  Use `/alm set <your_password>` for a global login.
+3.  Join any server and enjoy the magic!
+
+---
+*Created with ❤️ by Cytech Team & namnarak*

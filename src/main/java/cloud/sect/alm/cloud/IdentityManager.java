@@ -18,7 +18,7 @@ public class IdentityManager {
         
         // เช็คผ่าน Session Type ของ Minecraft Native
         // ถ้าเป็น User.Type.MS หรือ MOJANG คือไอดีแท้ที่ผ่านการ Auth
-        if (user.getType() == User.Type.MS || user.getType() == User.Type.MOJANG) {
+        if (user.getType() == User.Type.MSA || user.getType() == User.Type.MOJANG) {
             AutoLoginModClient.LOGGER.info("§6[ALM-Cloud] §aIdentity Verified via Microsoft/Mojang.");
             return AccountStatus.VERIFIED_MOJANG;
         }

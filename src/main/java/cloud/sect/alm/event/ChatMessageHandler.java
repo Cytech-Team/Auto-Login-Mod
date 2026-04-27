@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 public class ChatMessageHandler {
+    private static long lastResponseTime = 0;
+    private static final long COOLDOWN = 5000; // 5 seconds cooldown
     
     public static void register() {
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
@@ -18,9 +20,22 @@ public class ChatMessageHandler {
             
             AuthDetector.AuthType type = AuthDetector.detect(text);
             
+            if (type == AuthDetector.AuthType.SUCCESS) {
+                ServerConfig.setSessionLoggedIn(true);
+                return;
+            }
+
+            if (ServerConfig.isSessionLoggedIn()) return;
+            
+            // Prevention of spam
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastResponseTime < COOLDOWN) return;
+
             if (type == AuthDetector.AuthType.REGISTER) {
+                lastResponseTime = currentTime;
                 handleAutoResponse(client, true);
             } else if (type == AuthDetector.AuthType.LOGIN) {
+                lastResponseTime = currentTime;
                 handleAutoResponse(client, false);
             }
         });

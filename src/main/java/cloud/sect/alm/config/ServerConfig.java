@@ -29,11 +29,22 @@ public class ServerConfig {
     private static boolean smartModeEnabled = true;
     private static int minDelay = 800;
     private static int maxDelay = 2000;
+    private static java.util.List<String> customTriggers = new java.util.ArrayList<>();
     
     // Security
     private static String masterPasswordHash = "";
     private static String masterPasswordSalt = "";
     private static boolean isUnlocked = false;
+    private static boolean sessionLoggedIn = false;
+
+    public static boolean isSessionLoggedIn() {
+        return sessionLoggedIn;
+    }
+
+    public static void setSessionLoggedIn(boolean loggedIn) {
+        sessionLoggedIn = loggedIn;
+    }
+
     
     public static class ServerEntry {
         public String ip;
@@ -63,6 +74,7 @@ public class ServerConfig {
                 JsonObject root = GSON.fromJson(reader, JsonObject.class);
                 if (root.has("salt")) globalSalt = root.get("salt").getAsString();
                 if (root.has("servers")) servers = GSON.fromJson(root.get("servers"), new TypeToken<Map<String, ServerEntry>>(){}.getType());
+                if (root.has("customTriggers")) customTriggers = GSON.fromJson(root.get("customTriggers"), new TypeToken<java.util.List<String>>(){}.getType());
                 if (root.has("globalPassword")) globalPassword = root.get("globalPassword").getAsString();
                 if (root.has("globalRegisterMode")) globalRegisterMode = root.get("globalRegisterMode").getAsBoolean();
                 if (root.has("globalPasswordSalt")) globalPasswordSalt = root.get("globalPasswordSalt").getAsString();
@@ -85,6 +97,7 @@ public class ServerConfig {
             JsonObject root = new JsonObject();
             root.addProperty("salt", globalSalt);
             root.add("servers", GSON.toJsonTree(servers));
+            root.add("customTriggers", GSON.toJsonTree(customTriggers));
             root.addProperty("globalPassword", globalPassword);
             root.addProperty("globalRegisterMode", globalRegisterMode);
             root.addProperty("globalPasswordSalt", globalPasswordSalt);
@@ -102,6 +115,22 @@ public class ServerConfig {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static java.util.List<String> getCustomTriggers() {
+        return customTriggers;
+    }
+
+    public static void addCustomTrigger(String trigger) {
+        if (!customTriggers.contains(trigger.toLowerCase())) {
+            customTriggers.add(trigger.toLowerCase());
+            save();
+        }
+    }
+
+    public static void removeCustomTrigger(String trigger) {
+        customTriggers.remove(trigger.toLowerCase());
+        save();
     }
 
     private static long lastActivityTime = 0;
@@ -145,6 +174,10 @@ public class ServerConfig {
             return true;
         }
         return false;
+    }
+
+    public static boolean hasMasterPassword() {
+        return masterPasswordHash != null && !masterPasswordHash.isEmpty();
     }
 
     public static void lock() {

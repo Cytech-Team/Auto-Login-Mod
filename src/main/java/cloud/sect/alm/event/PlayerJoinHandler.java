@@ -10,6 +10,7 @@ public class PlayerJoinHandler {
     
     public static void register() {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            ServerConfig.setSessionLoggedIn(false);
             client.execute(() -> {
                 if (client.player == null) return;
                 
@@ -88,6 +89,11 @@ public class PlayerJoinHandler {
                     }
                 }).start();
             });
+        });
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            ServerConfig.setSessionLoggedIn(false);
+            ServerConfig.updateActivity();
         });
     }
     
