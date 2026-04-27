@@ -14,25 +14,34 @@ import java.util.Map;
 
 public class ServerConfig {
     private static final File CONFIG_FILE = new File("config/alm-servers.json");
-    private static final String MASTER_KEY = "AutoLoginModSecretKey2026";
+    private static String MASTER_KEY = "AutoLoginModSecretKey2026"; // Fallback key
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
     // Map<ServerIP, ServerEntry>
     private static Map<String, ServerEntry> servers = new HashMap<>();
     private static String globalSalt = "";
     
-    // Global settings (apply to all servers)
-    private static String globalPassword = "";          // password for all servers
-    private static boolean globalRegisterMode = false;  // use /register for all
-    private static String globalPasswordSalt = "";       // salt for global password
-    private static boolean autoTypeEnabled = false;     // auto send command on join
+    // Global settings
+    private static String globalPassword = "";
+    private static boolean globalRegisterMode = false;
+    private static String globalPasswordSalt = "";
+    private static boolean autoTypeEnabled = true;
+    private static boolean smartModeEnabled = true;
+    private static int minDelay = 800;
+    private static int maxDelay = 2000;
+    
+    // Security
+    private static String masterPasswordHash = "";
+    private static String masterPasswordSalt = "";
+    private static boolean isUnlocked = false;
     
     public static class ServerEntry {
         public String ip;
         public String encryptedCommand;
-        public boolean isRegisterCommand; // true = /register, false = /login
-        public boolean autoRegister;      // auto register on first join
+        public boolean isRegisterCommand;
+        public boolean autoRegister;
         public String salt;
+        public boolean enabled = true;
         
         public ServerEntry(String ip, String encryptedCommand, boolean isRegisterCommand, boolean autoRegister, String salt) {
             this.ip = ip;
@@ -52,25 +61,17 @@ public class ServerConfig {
             
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 JsonObject root = GSON.fromJson(reader, JsonObject.class);
-                if (root.has("salt")) {
-                    globalSalt = root.get("salt").getAsString();
-                }
-                if (root.has("servers")) {
-                    servers = GSON.fromJson(root.get("servers"), new TypeToken<Map<String, ServerEntry>>(){}.getType());
-                }
-                // Load global settings
-                if (root.has("globalPassword")) {
-                    globalPassword = root.get("globalPassword").getAsString();
-                }
-                if (root.has("globalRegisterMode")) {
-                    globalRegisterMode = root.get("globalRegisterMode").getAsBoolean();
-                }
-                if (root.has("globalPasswordSalt")) {
-                    globalPasswordSalt = root.get("globalPasswordSalt").getAsString();
-                }
-                if (root.has("autoTypeEnabled")) {
-                    autoTypeEnabled = root.get("autoTypeEnabled").getAsBoolean();
-                }
+                if (root.has("salt")) globalSalt = root.get("salt").getAsString();
+                if (root.has("servers")) servers = GSON.fromJson(root.get("servers"), new TypeToken<Map<String, ServerEntry>>(){}.getType());
+                if (root.has("globalPassword")) globalPassword = root.get("globalPassword").getAsString();
+                if (root.has("globalRegisterMode")) globalRegisterMode = root.get("globalRegisterMode").getAsBoolean();
+                if (root.has("globalPasswordSalt")) globalPasswordSalt = root.get("globalPasswordSalt").getAsString();
+                if (root.has("autoTypeEnabled")) autoTypeEnabled = root.get("autoTypeEnabled").getAsBoolean();
+                if (root.has("smartModeEnabled")) smartModeEnabled = root.get("smartModeEnabled").getAsBoolean();
+                if (root.has("minDelay")) minDelay = root.get("minDelay").getAsInt();
+                if (root.has("maxDelay")) maxDelay = root.get("maxDelay").getAsInt();
+                if (root.has("masterPasswordHash")) masterPasswordHash = root.get("masterPasswordHash").getAsString();
+                if (root.has("masterPasswordSalt")) masterPasswordSalt = root.get("masterPasswordSalt").getAsString();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,18 +80,20 @@ public class ServerConfig {
     
     public static void save() {
         try {
-            if (globalSalt.isEmpty()) {
-                globalSalt = EncryptionUtil.generateSalt();
-            }
+            if (globalSalt.isEmpty()) globalSalt = EncryptionUtil.generateSalt();
             
             JsonObject root = new JsonObject();
             root.addProperty("salt", globalSalt);
             root.add("servers", GSON.toJsonTree(servers));
-            // Save global settings
             root.addProperty("globalPassword", globalPassword);
             root.addProperty("globalRegisterMode", globalRegisterMode);
             root.addProperty("globalPasswordSalt", globalPasswordSalt);
             root.addProperty("autoTypeEnabled", autoTypeEnabled);
+            root.addProperty("smartModeEnabled", smartModeEnabled);
+            root.addProperty("minDelay", minDelay);
+            root.addProperty("maxDelay", maxDelay);
+            root.addProperty("masterPasswordHash", masterPasswordHash);
+            root.addProperty("masterPasswordSalt", masterPasswordSalt);
             
             CONFIG_FILE.getParentFile().mkdirs();
             try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
@@ -100,6 +103,69 @@ public class ServerConfig {
             e.printStackTrace();
         }
     }
+
+    private static long lastActivityTime = 0;
+    private static final long AUTO_LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+    
+    public static boolean setMasterPassword(String password) {
+        try {
+            masterPasswordSalt = EncryptionUtil.generateSalt();
+            masterPasswordHash = EncryptionUtil.hashPassword(password, masterPasswordSalt);
+            MASTER_KEY = password;
+            isUnlocked = true;
+            updateActivity();
+            save();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean unlock(String password) {
+        try {
+            String hash = EncryptionUtil.hashPassword(password, masterPasswordSalt);
+            if (hash.equals(masterPasswordHash)) {
+                MASTER_KEY = password;
+                isUnlocked = true;
+                updateActivity();
+                return true;
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
+    public static void updateActivity() {
+        lastActivityTime = System.currentTimeMillis();
+    }
+
+    public static boolean isLocked() {
+        if (!isUnlocked) return !masterPasswordHash.isEmpty();
+        if (System.currentTimeMillis() - lastActivityTime > AUTO_LOCK_TIMEOUT) {
+            lock();
+            return true;
+        }
+        return false;
+    }
+
+    public static void lock() {
+        MASTER_KEY = "AutoLoginModSecretKey2026";
+        isUnlocked = false;
+    }
+
+    public static int getRandomDelay() {
+        // Gaussian distribution: mean 1200ms, sigma 300ms
+        // Clamped between 600ms and 3000ms
+        java.util.Random r = new java.util.Random();
+        double val = r.nextGaussian() * 300 + 1200;
+        return (int) Math.max(600, Math.min(3000, val));
+    }
+
+    public static boolean isSmartModeEnabled() { return smartModeEnabled; }
+    public static void setSmartModeEnabled(boolean enabled) { smartModeEnabled = enabled; save(); }
+    public static int getMinDelay() { return minDelay; }
+    public static void setMinDelay(int delay) { minDelay = delay; save(); }
+    public static int getMaxDelay() { return maxDelay; }
+    public static void setMaxDelay(int delay) { maxDelay = delay; save(); }
     
     private static void createDefaultConfig() throws Exception {
         globalSalt = EncryptionUtil.generateSalt();

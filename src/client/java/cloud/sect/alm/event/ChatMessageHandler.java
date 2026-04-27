@@ -1,33 +1,27 @@
 package cloud.sect.alm.event;
 
 import cloud.sect.alm.config.ServerConfig;
+import cloud.sect.alm.util.AuthDetector;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 public class ChatMessageHandler {
     
-    // Simple detection - just check for /register or /login in message
-    private static final String REGISTER_CMD = "/register";
-    private static final String LOGIN_CMD = "/login";
-    
     public static void register() {
         ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
             Minecraft client = Minecraft.getInstance();
             if (client.player == null) return;
             
-            String text = message.getString().toLowerCase();
+            String text = message.getString();
+            if (ServerConfig.isLocked() || !ServerConfig.isSmartModeEnabled()) return;
             
-            // Check for register request - just look for /register
-            if (text.contains(REGISTER_CMD)) {
+            AuthDetector.AuthType type = AuthDetector.detect(text);
+            
+            if (type == AuthDetector.AuthType.REGISTER) {
                 handleAutoResponse(client, true);
-                return;
-            }
-            
-            // Check for login request - just look for /login
-            if (text.contains(LOGIN_CMD)) {
+            } else if (type == AuthDetector.AuthType.LOGIN) {
                 handleAutoResponse(client, false);
-                return;
             }
         });
     }
@@ -37,41 +31,30 @@ public class ChatMessageHandler {
         ServerConfig.ServerEntry entry = ServerConfig.getServer(serverIP);
         
         String password;
-        boolean isRegisterCommand;
         
         if (entry != null) {
             password = ServerConfig.getDecryptedCommand(entry);
-            isRegisterCommand = entry.isRegisterCommand;
         } else if (ServerConfig.hasGlobalPassword()) {
             password = ServerConfig.getGlobalPassword();
-            isRegisterCommand = ServerConfig.isGlobalRegisterMode();
         } else {
-            client.player.sendSystemMessage(
-                Component.literal("[Auto-Login] Server asked for password but no config found! Use /alm set <password>")
-            );
             return;
         }
         
-        if (password.isEmpty()) return;
+        if (password == null || password.isEmpty()) return;
         
-        // Override with detected type if server specifically asks
-        if (forceRegister) {
-            isRegisterCommand = true;
-        }
-        
-        final boolean finalIsRegister = isRegisterCommand;
+        final boolean finalIsRegister = forceRegister;
         final String finalPassword = password;
+        final int delay = ServerConfig.getRandomDelay();
         
-        // Small delay to avoid spam
         new Thread(() -> {
             try {
-                Thread.sleep(500);
+                Thread.sleep(delay);
                 client.execute(() -> {
                     if (client.player != null) {
-                        String cmd = finalIsRegister ? "register " + finalPassword : "login " + finalPassword;
+                        String cmd = finalIsRegister ? "register " + finalPassword + " " + finalPassword : "login " + finalPassword;
                         client.player.connection.sendCommand(cmd);
                         client.player.sendSystemMessage(
-                            Component.literal("[Auto-Login] Smart-detected and sent /" + (finalIsRegister ? "register" : "login"))
+                            Component.literal("§6[Auto-Login] §aDetected and sent §e/" + (finalIsRegister ? "register" : "login") + " §8(Delay: " + delay + "ms)")
                         );
                     }
                 });

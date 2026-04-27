@@ -3,7 +3,7 @@
 	"id": "auto-login-mod",
 	"version": "1.0",
 	"name": "Auto Login Mod",
-	"description": "Client mod for automatic entering login commands on servers that require them.",
+	"description": "Secure Client Utility for automatic login. FEATURES: PBKDF2 (300k iterations) AES-GCM encryption, Gaussian stealth delay, and Secure Master Password lock. DISCLAIMER: Use at your own risk. This mod is provided 'as-is' for QoL purposes. The authors are not responsible for server bans or account security.",
 	"authors": [
 		"Cytech Team"
 	],
@@ -18,12 +18,16 @@
 	"entrypoints": {
 		"client": [
 			"cloud.sect.alm.AutoLoginModClient"
+		],
+		"modmenu": [
+			"cloud.sect.alm.integration.AlmModMenuImpl"
 		]
 	},
 	"depends": {
 		"fabricloader": ">=0.19.1",
+		"quilt_loader": ">=0.20.0",
 		"minecraft": ">=26.1.2",
-		"java": ">=25",
+		"java": ">=26",
 		"fabric-api": "*"
 	}
 }

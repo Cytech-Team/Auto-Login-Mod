@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="CC0-1.0"
+issueTrackerURL="https://github.com/Cytech-Team/Auto-Login-Mod/issues"
+
+[[mods]]
+modId="auto_login_mod"
+version="1.0.0"
+displayName="Auto Login Mod"
+displayTest="MATCH_VERSION"
+authors="Cytech Team"
+description="''
+Secure Client Utility for automatic login.
+FEATURES: PBKDF2 (300k iterations) AES-GCM encryption, Gaussian stealth delay, and Secure Master Password lock.
+DISCLAIMER: Use at your own risk.
+''"
+
+[[dependencies.auto_login_mod]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.auto_login_mod]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,1.21.4]"
+    ordering="NONE"
+    side="BOTH"

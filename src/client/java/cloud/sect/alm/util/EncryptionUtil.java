@@ -14,7 +14,7 @@ public class EncryptionUtil {
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
     private static final int KEY_LENGTH = 256;
-    private static final int ITERATIONS = 65536;
+    private static final int ITERATIONS = 300000;
     
     // Generate key from password using PBKDF2
     private static SecretKey getKeyFromPassword(String password, String salt) throws Exception {
@@ -68,5 +68,13 @@ public class EncryptionUtil {
         byte[] salt = new byte[16];
         new SecureRandom().nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
+    }
+
+    // Hash password for verification (Master Password)
+    public static String hashPassword(String password, String salt) throws Exception {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), ITERATIONS, KEY_LENGTH);
+        byte[] hash = factory.generateSecret(spec).getEncoded();
+        return Base64.getEncoder().encodeToString(hash);
     }
 }

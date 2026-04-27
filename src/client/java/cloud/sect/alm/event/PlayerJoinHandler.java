@@ -6,9 +6,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 public class PlayerJoinHandler {
+    private static final String PREFIX = "§6[Auto-Login] §r";
     
     public static void register() {
-        // Show status when joining a server
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             client.execute(() -> {
                 if (client.player == null) return;
@@ -16,36 +16,40 @@ public class PlayerJoinHandler {
                 String serverIP = getCurrentServerIP(client);
                 ServerConfig.ServerEntry entry = ServerConfig.getServer(serverIP);
                 
-                // Check status
-                if (entry != null) {
-                    // Per-server config found
-                    String type = entry.isRegisterCommand ? "/register" : "/login";
+                // Greeting and Status Check
+                if (ServerConfig.isLocked()) {
                     client.player.sendSystemMessage(
-                        Component.literal("[Auto-Login] Server configured: " + type + " (Per-Server)")
+                        Component.literal(PREFIX + "§c§lDatabase Locked! §7Press §eF9 §7to enter Master Password.")
+                    );
+                    return;
+                }
+
+                if (entry != null) {
+                    String type = entry.isRegisterCommand ? "§e/register" : "§e/login";
+                    client.player.sendSystemMessage(
+                        Component.literal(PREFIX + "§7Active config: " + type + " §8(Per-Server)")
                     );
                 } else if (ServerConfig.hasGlobalPassword()) {
-                    // Global config found
-                    String type = ServerConfig.isGlobalRegisterMode() ? "/register" : "/login";
+                    String type = ServerConfig.isGlobalRegisterMode() ? "§e/register" : "§e/login";
                     client.player.sendSystemMessage(
-                        Component.literal("[Auto-Login] Server configured: " + type + " (Global)")
+                        Component.literal(PREFIX + "§7Active config: " + type + " §8(Global)")
                     );
                 } else {
-                    // No config
                     client.player.sendSystemMessage(
-                        Component.literal("[Auto-Login] NOT configured for this server! Use /alm set <password>")
-                    );
-                    return; // Don't auto-type if not configured
-                }
-                
-                // Auto-login if enabled
-                if (!ServerConfig.isAutoTypeEnabled()) {
-                    client.player.sendSystemMessage(
-                        Component.literal("[Auto-Login] Auto-type is OFF - Press F9 to login manually")
+                        Component.literal(PREFIX + "§c§lNot Configured! §7Use §e/alm gui §7to set a password.")
                     );
                     return;
                 }
                 
-                // Get password and type
+                // Check if auto-type is enabled
+                if (!ServerConfig.isAutoTypeEnabled()) {
+                    client.player.sendSystemMessage(
+                        Component.literal(PREFIX + "§8Auto-type is disabled. Press §fF9 §8to login.")
+                    );
+                    return;
+                }
+                
+                // Auto-login sequence
                 String password;
                 boolean isRegisterCommand;
                 
@@ -59,20 +63,23 @@ public class PlayerJoinHandler {
                 
                 if (password.isEmpty()) return;
                 
-                // Send command after delay
+                final int delay = ServerConfig.getRandomDelay();
                 client.player.sendSystemMessage(
-                    Component.literal("[Auto-Login] Auto-typing in 1 second...")
+                    Component.literal(PREFIX + "§aAuto-typing login in §e" + delay + "ms§a...")
                 );
                 
+                final String finalPassword = password;
+                final boolean finalIsRegister = isRegisterCommand;
+
                 new Thread(() -> {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(delay);
                         client.execute(() -> {
                             if (client.player != null) {
-                                String cmd = isRegisterCommand ? "register " + password : "login " + password;
+                                String cmd = finalIsRegister ? "register " + finalPassword + " " + finalPassword : "login " + finalPassword;
                                 client.player.connection.sendCommand(cmd);
                                 client.player.sendSystemMessage(
-                                    Component.literal("[Auto-Login] Auto-sent /" + (isRegisterCommand ? "register" : "login") + " command")
+                                    Component.literal(PREFIX + "§aSuccessfully auto-sent §e/" + (finalIsRegister ? "register" : "login"))
                                 );
                             }
                         });
